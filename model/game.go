@@ -5,7 +5,7 @@ import (
 )
 
 type Game struct {
-	ID         string     `json:"ID"`
+	ID         string     `json:"id"`
 	Players    []Player   `json:"players"`
 	Board      [][]string `json:"board"`
 	TurnType   TurnType   `json:"turnType"`

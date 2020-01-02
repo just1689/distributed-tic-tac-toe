@@ -1,13 +1,15 @@
 package model
 
-type Servers struct {
-	list []Server
-}
-
-func (s *Servers) Add(item Server) {
-	s.list = append(s.list, item)
+func NewServer() *Server {
+	return &Server{Players: []Player{}}
 }
 
 type Server struct {
-	players []Player
+	ID             string   `json:"id"`
+	Players        []Player `json:"players"`
+	OtherInstances []string `json:"otherInstances"`
+}
+
+func (s *Server) AddPlayer(p Player) {
+	s.Players = append(s.Players, p)
 }
