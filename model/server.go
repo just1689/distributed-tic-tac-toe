@@ -72,7 +72,7 @@ func (s *Server) HasPlayer(playerID string) bool {
 	}
 	return false
 }
-func (s *Server) GetPlayer(playerID string) (found bool, p *Player) {
+func (s *Server) GetPlayerByID(playerID string) (found bool, p *Player) {
 	for _, p = range s.Players {
 		if p.ID == playerID {
 			found = true

@@ -6,6 +6,8 @@ var MessageIsInstanceID = "instance-id"
 var MessageIsAuditResult = "audit-result"
 var MessageIsNewPlayer = "new-player"
 var MessageIsNewGame = "new-game"
+var MessageIsGetPlayer = "get-player"
+var MessageIsSetPlayer = "set-player"
 
 type Message struct {
 	Title string          `json:"title"`

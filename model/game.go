@@ -136,7 +136,3 @@ func (g *Game) AddPlayer(p *Player) (ok bool) {
 	ok = true
 	return
 }
-
-func (g *Game) FetchPlayerRemotely(id string) {
-
-}
