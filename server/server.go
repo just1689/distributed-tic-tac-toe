@@ -30,11 +30,19 @@ func HandleGetPlayerRemotely(item *model.Message) {
 }
 
 func HandleSetPlayer(item *model.Message) {
-	p := &model.Player{}
-	err := json.Unmarshal(item.Body, p)
+	player := &model.Player{}
+	err := json.Unmarshal(item.Body, player)
 	if err != nil {
 		logrus.Errorln(err)
 		return
 	}
-	Instance.AddPlayer(p)
+	Instance.AddPlayer(player)
+	for _, g := range Instance.Games {
+		for i, p := range g.Players {
+			if p.ID == player.ID {
+				g.Players[i] = player
+				return
+			}
+		}
+	}
 }
