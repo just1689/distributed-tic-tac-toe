@@ -15,9 +15,11 @@ import (
 )
 
 var workers = flag.Int("workers", 12, "workers is the number of go routines for handling incoming requests")
+var messageHandlers map[string]func(item *model.Message)
 
 func main() {
 	logrus.Println("Starting...")
+	setupMsgHandlers()
 	flag.Parse()
 	if *workers <= 0 {
 		logrus.Fatalln("Expected workers to be greater than 0, not ", *workers)
@@ -70,15 +72,27 @@ func startWorker(in chan []byte) {
 	}
 }
 
-func handleMessage(item *model.Message) {
-	if item.Title == model.MessageIsInstanceID {
+func setupMsgHandlers() {
+	messageHandlers = make(map[string]func(item *model.Message))
+
+	messageHandlers[model.MessageIsInstanceID] = func(item *model.Message) {
 		server.Instance.AddInstances(item.Msg)
-		return
 	}
-	if item.Title == model.MessageIsAuditResult {
+	messageHandlers[model.MessageIsAuditResult] = func(item *model.Message) {
 		fmt.Println(string(item.Body))
+	}
+	messageHandlers[model.MessageIsNewPlayer] = func(item *model.Message) {
+		server.HandleNewPlayer(item)
+	}
+
+}
+
+func handleMessage(item *model.Message) {
+	f, found := messageHandlers[item.Title]
+	if !found {
+		fmt.Println("not sure how to handle", item.Title, item.Msg, string(item.Body))
 		return
 	}
-	fmt.Println(item.Title, item.Msg, string(item.Body))
+	f(item)
 
 }
