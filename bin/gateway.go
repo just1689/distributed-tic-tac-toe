@@ -13,7 +13,6 @@ var listen = flag.String("listen", "", "listen address")
 func main() {
 	logrus.Println("Starting...")
 	swoq.StartQueueClient()
-	server.CreateQueueSubscriber(server.IncomingEveryInstance)
-	server.StartWS(config.GetVar("listen", *listen), server.IncomingEveryInstance)
+	server.StartWS(config.GetVar("listen", *listen), server.IncomingOnlyOnce)
 
 }
