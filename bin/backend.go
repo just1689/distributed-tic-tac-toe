@@ -24,7 +24,6 @@ func main() {
 	if *workers <= 0 {
 		logrus.Fatalln("Expected workers to be greater than 0, not ", *workers)
 	}
-
 	incomingWork := make(chan []byte, 1024)
 	for i := 0; i < *workers; i++ {
 		go server.StartWorker(incomingWork)
@@ -33,20 +32,20 @@ func main() {
 	natsConnURL := config.GetVar(NATsVar, *natsURL)
 	logrus.Println("Connecting to NATs server @", natsConnURL)
 	queue.BuildDefaultConnFromUrl(natsConnURL)
-	queueHandler := buildNATSHandler(incomingWork)
 
 	logrus.Println("Starting subscriptions...")
-
+	queueHandler := buildNATSHandler(incomingWork)
 	logrus.Println(" ...subscribing to", server.IncomingEveryInstance)
 	queue.Subscribe(server.IncomingEveryInstance, queueHandler)
-
 	logrus.Println(" ...subscribing to", server.IncomingOnlyOnce)
 	if _, err := queue.DefaultConn.QueueSubscribe(server.IncomingOnlyOnce, "queue", queueHandler); err != nil {
 		logrus.Fatalln(err)
 	}
 
 	//FOR TEST
-	setupTestEnv()
+	if *t != 0 {
+		setupTestEnv()
+	}
 
 	logrus.Println("Backend instance started", server.Instance.ID)
 	select {}
