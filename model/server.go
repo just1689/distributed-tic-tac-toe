@@ -16,12 +16,12 @@ func NewServer(everyInstance, onlyOnce string) (s *Server) {
 		ID:                    uuid.New().String(),
 		IncomingEveryInstance: everyInstance,
 		IncomingOnlyOnce:      onlyOnce,
-		Players:               []Player{},
+		Players:               []*Player{},
 		OtherInstances:        map[string]time.Time{},
-		Games:                 []Game{},
-		chanAddPlayer:         make(chan Player),
-		chanRemovePlayer:      make(chan Player),
-		chanAddGame:           make(chan Game),
+		Games:                 []*Game{},
+		chanAddPlayer:         make(chan *Player),
+		chanRemovePlayer:      make(chan *Player),
+		chanAddGame:           make(chan *Game),
 		chanPublishAudit:      make(chan string),
 		chanAddInstances:      make(chan string),
 	}
@@ -53,24 +53,26 @@ type Server struct {
 	ID                    string               `json:"id"`
 	IncomingEveryInstance string               `json:"-"`
 	IncomingOnlyOnce      string               `json:"-"`
-	Players               []Player             `json:"players"`
+	Players               []*Player            `json:"players"`
 	OtherInstances        map[string]time.Time `json:"otherInstances"`
-	Games                 []Game               `json:"games"`
+	Games                 []*Game              `json:"games"`
 	//Changes
-	chanAddPlayer    chan Player
-	chanRemovePlayer chan Player
-	chanAddGame      chan Game
+	chanAddPlayer    chan *Player
+	chanRemovePlayer chan *Player
+	chanAddGame      chan *Game
 	chanPublishAudit chan string
 	chanAddInstances chan string
 }
 
-func (s *Server) AddPlayer(p Player) {
+func (s *Server) AddPlayer(p *Player) {
 	s.chanAddPlayer <- p
 }
-func (s *Server) RemovePlayer(p Player) {
+func (s *Server) RemovePlayer(p *Player) {
 	s.chanRemovePlayer <- p
 }
-
+func (s *Server) AddGame(g *Game) {
+	s.chanAddGame <- g
+}
 func (s *Server) PublishAudit(channelID string) {
 	s.chanPublishAudit <- channelID
 }
@@ -82,12 +84,16 @@ func (s *Server) handleChanges() {
 	for {
 		select {
 		case p := <-s.chanAddPlayer:
+			logrus.Infoln("> Added player:", p.ID)
 			s.Players = append(s.Players, p)
 		case p := <-s.chanRemovePlayer:
+			logrus.Infoln("> Removed player:", p.ID)
 			s.Players = removePlayer(s.Players, p)
 		case g := <-s.chanAddGame:
+			logrus.Infoln("> Added game:", g.ID)
 			s.Games = append(s.Games, g)
 		case channelID := <-s.chanPublishAudit:
+			logrus.Infoln("> publish audit")
 			item := *s
 			b, err := json.Marshal(item)
 			if err != nil {
@@ -120,9 +126,9 @@ func (s *Server) handleChanges() {
 	}
 }
 
-func removePlayer(all []Player, remove Player) []Player {
+func removePlayer(all []*Player, remove *Player) []*Player {
 	var i int
-	var p Player
+	var p *Player
 	for i, p = range all {
 		if p.ID == remove.ID {
 			break
