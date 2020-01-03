@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var listen = flag.String("listen", "", "listen address")
+var listen = flag.String("listen", ":8080", "listen address")
 
 func main() {
 	logrus.Println("Starting...")
