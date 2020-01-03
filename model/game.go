@@ -44,7 +44,7 @@ func (g *Game) HasPlayer(playerID string) bool {
 	return false
 }
 
-func (g *Game) GetPlayerByID(playerID string) (found bool, player Player) {
+func (g *Game) GetPlayerByID(playerID string) (found bool, player *Player) {
 	for _, player = range g.Players {
 		if player.ID == playerID {
 			found = true
