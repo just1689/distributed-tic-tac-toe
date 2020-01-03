@@ -7,6 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func AddInstance(item *model.Message) {
+	Instance.AddInstances(item.Msg)
+}
+
 func HandleGetPlayerRemotely(item *model.Message) {
 	found, p := Instance.GetPlayerByID(item.Msg)
 	if found {

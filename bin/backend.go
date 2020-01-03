@@ -103,12 +103,12 @@ func startWorker(in chan []byte) {
 func setupMsgHandlers() {
 	messageHandlers = make(map[string]func(item *model.Message))
 
-	messageHandlers[model.MessageIsInstanceID] = func(item *model.Message) { server.Instance.AddInstances(item.Msg) }
+	messageHandlers[model.MessageIsInstanceID] = server.AddInstance
 	messageHandlers[model.MessageIsAuditResult] = func(item *model.Message) { fmt.Println(string(item.Body)) }
-	messageHandlers[model.MessageIsNewPlayer] = func(item *model.Message) { server.HandleNewPlayer(item) }
-	messageHandlers[model.MessageIsNewGame] = func(item *model.Message) { server.NewGame(item) }
-	messageHandlers[model.MessageIsGetPlayer] = func(item *model.Message) { server.HandleGetPlayerRemotely(item) }
-	messageHandlers[model.MessageIsSetPlayer] = func(item *model.Message) { server.HandleSetPlayer(item) }
+	messageHandlers[model.MessageIsNewPlayer] = server.HandleNewPlayer
+	messageHandlers[model.MessageIsNewGame] = server.NewGame
+	messageHandlers[model.MessageIsGetPlayer] = server.HandleGetPlayerRemotely
+	messageHandlers[model.MessageIsSetPlayer] = server.HandleSetPlayer
 }
 
 func handleMessage(item *model.Message) {
