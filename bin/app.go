@@ -27,6 +27,7 @@ func main() {
 	} else if *app == "gateway" {
 		RunGateway()
 	}
+	logrus.Errorln("could not start app", *app)
 
 }
 
@@ -41,6 +42,7 @@ func RunGateway() {
 
 func RunBackend() {
 	logrus.Println("Starting...")
+	server.InitInstance()
 	server.SetupMsgHandlers()
 	if *workers <= 0 {
 		logrus.Fatalln("Expected workers to be greater than 0, not ", *workers)

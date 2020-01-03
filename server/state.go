@@ -8,13 +8,17 @@ import (
 	"time"
 )
 
-var IncomingEveryInstance = "global"
-var IncomingOnlyOnce = "balanced"
-var pingTime = time.Second * 2
+const IncomingEveryInstance = "global"
+const IncomingOnlyOnce = "balanced"
+const pingTime = time.Second * 2
 
-var Instance = model.NewServer(IncomingEveryInstance, IncomingOnlyOnce, []func(*model.Server){PingNetwork})
+var Instance *model.Server
 
-func PingNetwork(s *model.Server) {
+func InitInstance() {
+	Instance = model.NewServer(IncomingEveryInstance, IncomingOnlyOnce, []func(*model.Server){pingNetwork})
+}
+
+func pingNetwork(s *model.Server) {
 	item := model.Message{
 		Title: model.MessageIsInstanceID,
 		Msg:   s.ID,
