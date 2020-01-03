@@ -20,7 +20,7 @@ func NewGame(message *model.Message) {
 		})
 		fetchPlayerRemotely(message.Msg)
 	}
-	queue.Subscribe(game.GetChannel(), func(m *nats.Msg) {
+	game.SubscriptionCloser = queue.Subscribe(game.GetChannel(), func(m *nats.Msg) {
 		item := &model.Message{}
 		if err := json.Unmarshal(m.Data, item); err != nil {
 			logrus.Errorln(err)

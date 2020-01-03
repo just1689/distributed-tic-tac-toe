@@ -21,11 +21,12 @@ func NewGame() *Game {
 }
 
 type Game struct {
-	ID         string     `json:"id"`
-	Players    []*Player  `json:"players"`
-	Board      [][]string `json:"board"`
-	TurnType   TurnType   `json:"turnType"`
-	PlayerTurn string     `json:"playerTurn"`
+	ID                 string     `json:"id"`
+	Players            []*Player  `json:"players"`
+	Board              [][]string `json:"board"`
+	TurnType           TurnType   `json:"turnType"`
+	PlayerTurn         string     `json:"playerTurn"`
+	SubscriptionCloser func()
 }
 
 type TurnType string
