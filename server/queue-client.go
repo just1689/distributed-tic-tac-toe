@@ -12,8 +12,8 @@ type Message struct {
 	Name string `json:"name"`
 }
 
-func CreateQueueSubscriber() {
-	queue.Subscribe(IncomingQueueName, func(m *nats.Msg) {
+func CreateQueueSubscriber(globalIncoming string) {
+	queue.Subscribe(globalIncoming, func(m *nats.Msg) {
 		w := &ws.WrappedMessage{}
 		err := json.Unmarshal(m.Data, w)
 		if err != nil {

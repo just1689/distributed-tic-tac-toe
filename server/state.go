@@ -1,7 +1,8 @@
 package server
 
-import (
-	"github.com/just1689/distributed-tic-tac-toe/model"
-)
+import "github.com/just1689/distributed-tic-tac-toe/model"
 
-var Instance = model.NewServer()
+var IncomingEveryInstance = "global"
+var IncomingOnlyOnce = "balanced"
+
+var Instance = model.NewServer(IncomingEveryInstance, IncomingOnlyOnce)
