@@ -20,7 +20,7 @@ func NewGame(message *model.Message) {
 	}
 	game := model.NewGame()
 
-	if found, p := Instance.GetPlayer(n.PlayerID); found {
+	if found, p := Instance.GetPlayerByID(n.PlayerID); found {
 		game.AddPlayer(p)
 	} else {
 		game.AddPlayer(&model.Player{
