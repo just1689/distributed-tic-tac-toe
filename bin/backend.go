@@ -84,6 +84,9 @@ func setupMsgHandlers() {
 	messageHandlers[model.MessageIsNewPlayer] = func(item *model.Message) {
 		server.HandleNewPlayer(item)
 	}
+	messageHandlers[model.MessageIsNewGame] = func(item *model.Message) {
+		server.NewGame(item)
+	}
 
 }
 

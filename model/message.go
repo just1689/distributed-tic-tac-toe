@@ -5,6 +5,7 @@ import "encoding/json"
 var MessageIsInstanceID = "instance-id"
 var MessageIsAuditResult = "audit-result"
 var MessageIsNewPlayer = "new-player"
+var MessageIsNewGame = "new-game"
 
 type Message struct {
 	Title string          `json:"title"`

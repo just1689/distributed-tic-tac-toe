@@ -6,7 +6,7 @@ import (
 
 type Game struct {
 	ID         string     `json:"id"`
-	Players    []Player   `json:"players"`
+	Players    []*Player  `json:"players"`
 	Board      [][]string `json:"board"`
 	TurnType   TurnType   `json:"turnType"`
 	PlayerTurn string     `json:"playerTurn"`
@@ -23,7 +23,7 @@ const (
 func NewGame() *Game {
 	result := &Game{
 		ID:      uuid.New().String(),
-		Players: make([]Player, 0),
+		Players: make([]*Player, 0),
 		Board: [][]string{
 			{"", "", ""},
 			{"", "", ""},
@@ -127,7 +127,7 @@ func (g *Game) StartGame() (ok bool) {
 	return
 }
 
-func (g *Game) AddPlayer(p Player) (ok bool) {
+func (g *Game) AddPlayer(p *Player) (ok bool) {
 	if len(g.Players) >= 2 {
 		ok = false
 		return
@@ -135,4 +135,8 @@ func (g *Game) AddPlayer(p Player) (ok bool) {
 	g.Players = append(g.Players, p)
 	ok = true
 	return
+}
+
+func (g *Game) FetchPlayerRemotely(id string) {
+
 }

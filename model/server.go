@@ -64,6 +64,24 @@ type Server struct {
 	chanAddInstances chan string
 }
 
+func (s *Server) HasPlayer(playerID string) bool {
+	for _, p := range s.Players {
+		if p.ID == playerID {
+			return true
+		}
+	}
+	return false
+}
+func (s *Server) GetPlayer(playerID string) (found bool, p *Player) {
+	for _, p = range s.Players {
+		if p.ID == playerID {
+			found = true
+			return
+		}
+	}
+	return
+}
+
 func (s *Server) AddPlayer(p *Player) {
 	s.chanAddPlayer <- p
 }
