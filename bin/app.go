@@ -21,12 +21,13 @@ var listen = flag.String("listen", ":8080", "listen address")
 
 func main() {
 	flag.Parse()
-	if *app == "backend" {
+	a := config.GetVar("app", *app)
+	if a == "backend" {
 		RunBackend()
-	} else if *app == "gateway" {
+	} else if a == "gateway" {
 		RunGateway()
 	}
-	logrus.Errorln("could not start app", *app)
+	logrus.Errorln("could not start app", a)
 
 }
 
