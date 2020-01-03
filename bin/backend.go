@@ -45,6 +45,15 @@ func main() {
 		logrus.Fatalln(err)
 	}
 
+	//FOR TEST
+	setupTestEnv()
+
+	logrus.Println("Backend instance started", server.Instance.ID)
+	select {}
+
+}
+
+func setupTestEnv() {
 	//Test A
 	go func() {
 		if *t != 1 {
@@ -75,10 +84,6 @@ func main() {
 		time.Sleep(8 * time.Second)
 		server.Instance.PublishAudit(server.IncomingEveryInstance)
 	}()
-
-	logrus.Println("Backend instance started", server.Instance.ID)
-	select {}
-
 }
 
 func buildNATSHandler(incomingWork chan []byte) func(m *nats.Msg) {
