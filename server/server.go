@@ -36,7 +36,6 @@ func HandleSetPlayer(item *model.Message) {
 		logrus.Errorln(err)
 		return
 	}
-	Instance.AddPlayer(player)
 	for _, g := range Instance.Games {
 		for i, p := range g.Players {
 			if p.ID == player.ID {
