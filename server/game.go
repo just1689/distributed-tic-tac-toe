@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/just1689/distributed-tic-tac-toe/model"
 	"github.com/just1689/swoq/queue"
+	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,6 +20,14 @@ func NewGame(message *model.Message) {
 		})
 		fetchPlayerRemotely(message.Msg)
 	}
+	queue.Subscribe(game.GetChannel(), func(m *nats.Msg) {
+		item := &model.Message{}
+		if err := json.Unmarshal(m.Data, item); err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		game.HandleIncomingMessage(item)
+	})
 	Instance.AddGame(game)
 }
 

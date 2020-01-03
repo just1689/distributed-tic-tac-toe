@@ -2,7 +2,23 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
+
+func NewGame() *Game {
+	result := &Game{
+		ID:      uuid.New().String(),
+		Players: make([]*Player, 0),
+		Board: [][]string{
+			{"", "", ""},
+			{"", "", ""},
+			{"", "", ""},
+		},
+		TurnType:   PreGame,
+		PlayerTurn: "",
+	}
+	return result
+}
 
 type Game struct {
 	ID         string     `json:"id"`
@@ -20,19 +36,8 @@ const (
 	PostGame TurnType = "PostGame"
 )
 
-func NewGame() *Game {
-	result := &Game{
-		ID:      uuid.New().String(),
-		Players: make([]*Player, 0),
-		Board: [][]string{
-			{"", "", ""},
-			{"", "", ""},
-			{"", "", ""},
-		},
-		TurnType:   PreGame,
-		PlayerTurn: "",
-	}
-	return result
+func (g *Game) GetChannel() string {
+	return "game." + g.ID
 }
 
 func (g *Game) HasPlayer(playerID string) bool {
@@ -135,4 +140,8 @@ func (g *Game) AddPlayer(p *Player) (ok bool) {
 	g.Players = append(g.Players, p)
 	ok = true
 	return
+}
+
+func (g *Game) HandleIncomingMessage(item *Message) {
+	logrus.Println("game", g.ID, ":", item.Title, item.Msg)
 }
