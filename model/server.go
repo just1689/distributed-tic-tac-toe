@@ -25,7 +25,9 @@ func NewServer(everyInstance, onlyOnce string, runnables []func(*Server)) (s *Se
 		chanAddInstances:      make(chan string),
 	}
 	go s.handleChanges()
+	logrus.Println("Running runnables...")
 	for _, r := range runnables {
+		logrus.Println(" ...next runnable")
 		go r(s)
 	}
 	return
@@ -44,8 +46,6 @@ type Server struct {
 	chanAddGame      chan *Game
 	chanPublishAudit chan string
 	chanAddInstances chan string
-	//Func
-	PingNetwork func(s *Server)
 }
 
 func (s *Server) HasPlayer(playerID string) bool {
