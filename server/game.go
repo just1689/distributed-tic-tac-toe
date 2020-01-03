@@ -7,27 +7,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type newGameRequest struct {
-	PlayerID string `json:"playerID"`
-}
-
 func NewGame(message *model.Message) {
-	n := &newGameRequest{}
-	err := json.Unmarshal(message.Body, n)
-	if err != nil {
-		logrus.Errorln("could not unmarshal newGameRequest")
-		return
-	}
 	game := model.NewGame()
 
-	if found, p := Instance.GetPlayerByID(n.PlayerID); found {
+	if found, p := Instance.GetPlayerByID(message.Msg); found {
 		game.AddPlayer(p)
 	} else {
 		game.AddPlayer(&model.Player{
-			ID:   n.PlayerID,
+			ID:   message.Msg,
 			Name: "...",
 		})
-		fetchPlayerRemotely(n.PlayerID)
+		fetchPlayerRemotely(message.Msg)
 	}
 	Instance.AddGame(game)
 }
