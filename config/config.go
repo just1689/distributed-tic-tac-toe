@@ -3,9 +3,9 @@ package config
 import "os"
 
 func GetVar(key, def string) string {
-	result := def
+	result := os.Getenv(key)
 	if result == "" {
-		result = os.Getenv(key)
+		result = def
 	}
 	return result
 }
