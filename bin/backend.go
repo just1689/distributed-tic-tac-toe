@@ -2,14 +2,17 @@ package main
 
 import (
 	"flag"
+	"github.com/just1689/distributed-tic-tac-toe/config"
 	"github.com/just1689/distributed-tic-tac-toe/server"
 	"github.com/just1689/swoq/queue"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 )
 
+const NATsVar = "nats"
+
 var workers = flag.Int("workers", 12, "workers is the number of go routines for handling incoming requests")
-var natsURL = flag.String("nats", "nats://127.0.0.1:4222", "The NATS url (defaults to nats://127.0.0.1:4222) for a NATS server instance.")
+var natsURL = flag.String(NATsVar, "nats://127.0.0.1:4222", "The NATS url (defaults to nats://127.0.0.1:4222) for a NATS server instance.")
 
 //var t = flag.Int("t", 0, "which test to run ")
 
@@ -27,7 +30,7 @@ func main() {
 		logrus.Println(" ...started worker ", i)
 	}
 
-	queue.BuildDefaultConnFromUrl(*natsURL)
+	queue.BuildDefaultConnFromUrl(config.GetVar(NATsVar, *natsURL))
 	queueHandler := buildNATSHandler(incomingWork)
 
 	logrus.Println("Starting subscriptions...")
