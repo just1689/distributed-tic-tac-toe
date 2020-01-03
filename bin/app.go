@@ -13,14 +13,35 @@ import (
 
 const NATsVar = "nats"
 
+var app = flag.String("app", "", "Which app to run - backend or gateway")
 var workers = flag.Int("workers", 12, "workers is the number of go routines for handling incoming requests")
 var natsURL = flag.String(NATsVar, "nats://127.0.0.1:4222", "The NATS url for a NATS server instance.")
 var t = flag.Int("t", 0, "which test to run ")
 
+var listen = flag.String("listen", ":8080", "listen address")
+
 func main() {
+	flag.Parse()
+	if *app == "backend" {
+		RunBackend()
+	} else if *app == "gateway" {
+		RunGateway()
+	}
+
+}
+
+func RunGateway() {
+	logrus.Println("Starting...")
+	flag.Parse()
+	n := config.GetVar(NATsVar, *natsURL)
+	queue.BuildDefaultConnFromUrl(n)
+	server.StartWS(config.GetVar("listen", *listen), server.IncomingOnlyOnce)
+
+}
+
+func RunBackend() {
 	logrus.Println("Starting...")
 	server.SetupMsgHandlers()
-	flag.Parse()
 	if *workers <= 0 {
 		logrus.Fatalln("Expected workers to be greater than 0, not ", *workers)
 	}
@@ -49,7 +70,6 @@ func main() {
 
 	logrus.Println("Backend instance started", server.Instance.ID)
 	select {}
-
 }
 
 func setupTestEnv() {
