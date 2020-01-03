@@ -9,7 +9,7 @@ import (
 )
 
 var listen = flag.String("listen", ":8080", "listen address")
-var n = flag.String("nats", "nats://127.0.0.1:4222", "The NATS url (defaults to nats://127.0.0.1:4222) for a NATS server instance.")
+var n = flag.String("nats", "nats://127.0.0.1:4222", "The NATS url for a NATS server instance.")
 
 func main() {
 	logrus.Println("Starting...")
