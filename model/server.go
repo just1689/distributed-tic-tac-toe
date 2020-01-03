@@ -8,10 +8,9 @@ import (
 	"time"
 )
 
-var pingTime = time.Second * 2
 var expiryTime = time.Second * 5
 
-func NewServer(everyInstance, onlyOnce string) (s *Server) {
+func NewServer(everyInstance, onlyOnce string, runnables []func(*Server)) (s *Server) {
 	s = &Server{
 		ID:                    uuid.New().String(),
 		IncomingEveryInstance: everyInstance,
@@ -26,27 +25,10 @@ func NewServer(everyInstance, onlyOnce string) (s *Server) {
 		chanAddInstances:      make(chan string),
 	}
 	go s.handleChanges()
-	go s.pingNetwork()
+	for _, r := range runnables {
+		go r(s)
+	}
 	return
-}
-
-func (s *Server) pingNetwork() {
-	go func() {
-		item := Message{
-			Title: MessageIsInstanceID,
-			Msg:   s.ID,
-		}
-		b, err := json.Marshal(item)
-		if err != nil {
-			logrus.Errorln("could not marshal WrappedMessage (pingNetwork)")
-			logrus.Panicln(err)
-		}
-		publisher := queue.GetPublisher(s.IncomingEveryInstance)
-		for {
-			publisher(b)
-			time.Sleep(pingTime)
-		}
-	}()
 }
 
 type Server struct {
@@ -62,6 +44,8 @@ type Server struct {
 	chanAddGame      chan *Game
 	chanPublishAudit chan string
 	chanAddInstances chan string
+	//Func
+	PingNetwork func(s *Server)
 }
 
 func (s *Server) HasPlayer(playerID string) bool {
