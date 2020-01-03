@@ -17,7 +17,6 @@ var app = flag.String("app", "", "Which app to run - backend or gateway")
 var workers = flag.Int("workers", 12, "workers is the number of go routines for handling incoming requests")
 var natsURL = flag.String(NATsVar, "nats://127.0.0.1:4222", "The NATS url for a NATS server instance.")
 var t = flag.Int("t", 0, "which test to run ")
-
 var listen = flag.String("listen", ":8080", "listen address")
 
 func main() {
