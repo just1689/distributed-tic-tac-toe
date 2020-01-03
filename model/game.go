@@ -26,7 +26,7 @@ type Game struct {
 	Board              [][]string `json:"board"`
 	TurnType           TurnType   `json:"turnType"`
 	PlayerTurn         string     `json:"playerTurn"`
-	SubscriptionCloser func()
+	SubscriptionCloser func()     `json:"-"`
 }
 
 type TurnType string
