@@ -17,6 +17,8 @@ import (
 var workers = flag.Int("workers", 12, "workers is the number of go routines for handling incoming requests")
 var messageHandlers map[string]func(item *model.Message)
 
+var t = flag.Int("t", 0, "which test to run ")
+
 func main() {
 	logrus.Println("Starting...")
 	setupMsgHandlers()
@@ -44,12 +46,38 @@ func main() {
 		logrus.Fatalln(err)
 	}
 
+	//Test A
 	go func() {
-		time.Sleep(8 * time.Second)
-		server.Instance.PublishAudit(server.IncomingOnlyOnce)
+		if *t != 1 {
+			return
+		}
+		time.Sleep(3 * time.Second)
+		p := &model.Player{
+			ID:   "1000",
+			Name: "Justin",
+		}
+		server.Instance.AddPlayer(p)
+	}()
+	//Test B
+	go func() {
+		if *t != 2 {
+			return
+		}
+		time.Sleep(3 * time.Second)
+		server.NewGame(&model.Message{
+			Title: model.MessageIsNewGame,
+			Msg:   "1000",
+			Body:  nil,
+		})
+		server.Instance.PublishAudit(server.IncomingEveryInstance)
 	}()
 
-	logrus.Println("Backend has started!")
+	go func() {
+		time.Sleep(8 * time.Second)
+		server.Instance.PublishAudit(server.IncomingEveryInstance)
+	}()
+
+	logrus.Println("Backend instance started", server.Instance.ID)
 	select {}
 
 }
@@ -75,24 +103,12 @@ func startWorker(in chan []byte) {
 func setupMsgHandlers() {
 	messageHandlers = make(map[string]func(item *model.Message))
 
-	messageHandlers[model.MessageIsInstanceID] = func(item *model.Message) {
-		server.Instance.AddInstances(item.Msg)
-	}
-	messageHandlers[model.MessageIsAuditResult] = func(item *model.Message) {
-		fmt.Println(string(item.Body))
-	}
-	messageHandlers[model.MessageIsNewPlayer] = func(item *model.Message) {
-		server.HandleNewPlayer(item)
-	}
-	messageHandlers[model.MessageIsNewGame] = func(item *model.Message) {
-		server.NewGame(item)
-	}
-	messageHandlers[model.MessageIsGetPlayer] = func(item *model.Message) {
-		server.HandleGetPlayerRemotely(item)
-	}
-	messageHandlers[model.MessageIsSetPlayer] = func(item *model.Message) {
-		server.HandleSetPlayer(item)
-	}
+	messageHandlers[model.MessageIsInstanceID] = func(item *model.Message) { server.Instance.AddInstances(item.Msg) }
+	messageHandlers[model.MessageIsAuditResult] = func(item *model.Message) { fmt.Println(string(item.Body)) }
+	messageHandlers[model.MessageIsNewPlayer] = func(item *model.Message) { server.HandleNewPlayer(item) }
+	messageHandlers[model.MessageIsNewGame] = func(item *model.Message) { server.NewGame(item) }
+	messageHandlers[model.MessageIsGetPlayer] = func(item *model.Message) { server.HandleGetPlayerRemotely(item) }
+	messageHandlers[model.MessageIsSetPlayer] = func(item *model.Message) { server.HandleSetPlayer(item) }
 }
 
 func handleMessage(item *model.Message) {
