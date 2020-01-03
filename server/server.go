@@ -2,10 +2,58 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/just1689/distributed-tic-tac-toe/model"
 	"github.com/just1689/swoq/queue"
 	"github.com/sirupsen/logrus"
 )
+
+var messageHandlers map[string]func(item *model.Message)
+
+func SetupMsgHandlers() {
+	messageHandlers = map[string]func(message *model.Message){
+		model.MessageIsAuditResult: printBody,
+		model.MessageIsInstanceID:  AddInstance,
+		model.MessageIsNewPlayer:   HandleNewPlayer,
+		model.MessageIsNewGame:     NewGame,
+		model.MessageIsGetPlayer:   HandleGetPlayerRemotely,
+		model.MessageIsSetPlayer:   HandleSetPlayer,
+	}
+}
+
+func printBody(item *model.Message) {
+	fmt.Println(string(item.Body))
+}
+
+func StartWorker(in chan []byte) {
+	for b := range in {
+		item := &model.Message{}
+		err := json.Unmarshal(b, item)
+		if err != nil {
+			logrus.Errorln(err)
+			continue
+		}
+		handleMessage(item)
+	}
+}
+
+func handleMessage(item *model.Message) {
+	if f, found := messageHandlers[item.Title]; !found {
+		fmt.Println("not sure how to handle", item.Title, item.Msg, string(item.Body))
+		return
+	} else {
+		f(item)
+	}
+}
+
+func HandleMessage(item *model.Message) {
+	if f, found := messageHandlers[item.Title]; !found {
+		fmt.Println("not sure how to handle", item.Title, item.Msg, string(item.Body))
+		return
+	} else {
+		f(item)
+	}
+}
 
 func AddInstance(item *model.Message) {
 	Instance.AddInstances(item.Msg)

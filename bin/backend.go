@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/just1689/distributed-tic-tac-toe/model"
 	"github.com/just1689/distributed-tic-tac-toe/server"
 	"github.com/just1689/swoq/queue"
@@ -15,13 +13,12 @@ import (
 )
 
 var workers = flag.Int("workers", 12, "workers is the number of go routines for handling incoming requests")
-var messageHandlers map[string]func(item *model.Message)
 
 var t = flag.Int("t", 0, "which test to run ")
 
 func main() {
 	logrus.Println("Starting...")
-	setupMsgHandlers()
+	server.SetupMsgHandlers()
 	flag.Parse()
 	if *workers <= 0 {
 		logrus.Fatalln("Expected workers to be greater than 0, not ", *workers)
@@ -29,7 +26,7 @@ func main() {
 
 	incomingWork := make(chan []byte, 1024)
 	for i := 0; i < *workers; i++ {
-		go startWorker(incomingWork)
+		go server.StartWorker(incomingWork)
 		logrus.Println(" ...started worker ", i)
 	}
 
@@ -86,37 +83,4 @@ func buildNATSHandler(incomingWork chan []byte) func(m *nats.Msg) {
 	return func(m *nats.Msg) {
 		incomingWork <- m.Data
 	}
-}
-
-func startWorker(in chan []byte) {
-	for b := range in {
-		item := &model.Message{}
-		err := json.Unmarshal(b, item)
-		if err != nil {
-			logrus.Errorln(err)
-			continue
-		}
-		handleMessage(item)
-	}
-}
-
-func setupMsgHandlers() {
-	messageHandlers = make(map[string]func(item *model.Message))
-
-	messageHandlers[model.MessageIsInstanceID] = server.AddInstance
-	messageHandlers[model.MessageIsAuditResult] = func(item *model.Message) { fmt.Println(string(item.Body)) }
-	messageHandlers[model.MessageIsNewPlayer] = server.HandleNewPlayer
-	messageHandlers[model.MessageIsNewGame] = server.NewGame
-	messageHandlers[model.MessageIsGetPlayer] = server.HandleGetPlayerRemotely
-	messageHandlers[model.MessageIsSetPlayer] = server.HandleSetPlayer
-}
-
-func handleMessage(item *model.Message) {
-	f, found := messageHandlers[item.Title]
-	if !found {
-		fmt.Println("not sure how to handle", item.Title, item.Msg, string(item.Body))
-		return
-	}
-	f(item)
-
 }
