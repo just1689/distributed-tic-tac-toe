@@ -65,7 +65,9 @@ func RunBackend() {
 		logrus.Fatalln(err)
 	}
 
-	//FOR TEST
+	queue.Subscribe(server.Instance.GetQueueName(), queueHandler)
+
+	//FOR DISTRIBUTED TEST
 	if *t != 0 {
 		setupTestEnv()
 	}
