@@ -63,7 +63,8 @@ func RunBackend() {
 	logrus.Println("Starting subscriptions...")
 	queueHandler := buildNATSHandler(incomingBin)
 	logrus.Println(" ...subscribing to", server.IncomingEveryInstance)
-	queue.Subscribe(server.IncomingEveryInstance, queueHandler)
+	unSubEveryInstance := queue.Subscribe(server.IncomingEveryInstance, queueHandler)
+	server.Instance.QueueHub.Add(server.IncomingEveryInstance, unSubEveryInstance)
 	logrus.Println(" ...subscribing to", server.IncomingOnlyOnce)
 	unSubQueueWS, err := queue.DefaultConn.QueueSubscribe(server.IncomingWebsocket, "queue", func(msg *nats.Msg) {
 		item := &ws.WrappedMessage{}
