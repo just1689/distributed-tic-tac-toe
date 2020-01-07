@@ -56,17 +56,46 @@ func RunBackend() {
 		go server.StartWorker(incomingItem)
 		logrus.Println(" ...started worker ", i)
 	}
-	natsConnURL := config.GetVar(NATsVar, *natsURL)
-	logrus.Println("Connecting to NATs server @", natsConnURL)
-	queue.BuildDefaultConnFromUrl(natsConnURL)
 
+	connectToNATS()
+	subscribeToNATS(incomingBin, incomingItem)
+
+	//FOR DISTRIBUTED TEST
+	if *t != 0 {
+		setupTestEnv()
+	}
+
+	logrus.Println("Backend instance started", server.Instance.ID)
+	select {}
+}
+
+func subscribeToNATS(incomingBin chan []byte, incomingItem chan model.Message) {
 	logrus.Println("Starting subscriptions...")
 	queueHandler := buildNATSHandler(incomingBin)
 	logrus.Println(" ...subscribing to", server.IncomingEveryInstance)
 	unSubEveryInstance := queue.Subscribe(server.IncomingEveryInstance, queueHandler)
 	server.Instance.QueueHub.Add(server.IncomingEveryInstance, unSubEveryInstance)
 	logrus.Println(" ...subscribing to", server.IncomingOnlyOnce)
-	unSubQueueWS, err := queue.DefaultConn.QueueSubscribe(server.IncomingWebsocket, "queue", func(msg *nats.Msg) {
+	unSubQueueWS, err := queue.DefaultConn.QueueSubscribe(server.IncomingWebsocket, "queue", buildWebsocketHandler(incomingItem))
+	if err != nil {
+		logrus.Fatalln(err)
+	}
+	server.Instance.QueueHub.Add(server.IncomingWebsocket, unSubQueueWS)
+	logrus.Println(" ...subscribing to", server.Instance.GetQueueName())
+	unSubQueueBackendQueue := queue.Subscribe(server.Instance.GetQueueName(), queueHandler)
+	server.Instance.QueueHub.Add(server.Instance.GetQueueName(), unSubQueueBackendQueue)
+
+}
+
+func connectToNATS() {
+	natsConnURL := config.GetVar(NATsVar, *natsURL)
+	logrus.Println("Connecting to NATs server @", natsConnURL)
+	queue.BuildDefaultConnFromUrl(natsConnURL)
+
+}
+
+func buildWebsocketHandler(incomingItem chan model.Message) func(m *nats.Msg) {
+	return func(msg *nats.Msg) {
 		item := &ws.WrappedMessage{}
 		if err := json.Unmarshal(msg.Data, item); err != nil {
 			logrus.Errorln("could not convert websocket message to WrappedMessage")
@@ -82,22 +111,13 @@ func RunBackend() {
 			Body:   item.Body,
 		}
 		incomingItem <- result
-	})
-	server.Instance.QueueHub.Add(server.IncomingWebsocket, unSubQueueWS)
-	if err != nil {
-		logrus.Fatalln(err)
 	}
+}
 
-	unSubQueueBackendQueue := queue.Subscribe(server.Instance.GetQueueName(), queueHandler)
-	server.Instance.QueueHub.Add(server.Instance.GetQueueName(), unSubQueueBackendQueue)
-
-	//FOR DISTRIBUTED TEST
-	if *t != 0 {
-		setupTestEnv()
+func buildNATSHandler(incomingWork chan []byte) func(m *nats.Msg) {
+	return func(m *nats.Msg) {
+		incomingWork <- m.Data
 	}
-
-	logrus.Println("Backend instance started", server.Instance.ID)
-	select {}
 }
 
 func setupTestEnv() {
@@ -131,10 +151,4 @@ func setupTestEnv() {
 		time.Sleep(8 * time.Second)
 		server.Instance.PublishAudit(server.IncomingEveryInstance)
 	}()
-}
-
-func buildNATSHandler(incomingWork chan []byte) func(m *nats.Msg) {
-	return func(m *nats.Msg) {
-		incomingWork <- m.Data
-	}
 }

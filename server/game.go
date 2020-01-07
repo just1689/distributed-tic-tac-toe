@@ -20,7 +20,8 @@ func NewGame(message model.Message) {
 		})
 		fetchPlayerRemotely(message.Msg, Instance.ID)
 	}
-	game.SubscriptionCloser = queue.Subscribe(game.GetChannel(), func(m *nats.Msg) {
+
+	u := queue.Subscribe(game.GetChannel(), func(m *nats.Msg) {
 		item := &model.Message{}
 		if err := json.Unmarshal(m.Data, item); err != nil {
 			logrus.Errorln(err)
@@ -28,6 +29,9 @@ func NewGame(message model.Message) {
 		}
 		game.HandleIncomingMessage(item)
 	})
+	game.SubscriptionCloser = func() {
+		u.Unsubscribe()
+	}
 	Instance.AddGame(game)
 }
 
