@@ -2,4 +2,4 @@ resources:
   - ../../base
 patchesStrategicMerge:
   - backend.yaml
-namespace: local-dttt
+namespace: dttt
