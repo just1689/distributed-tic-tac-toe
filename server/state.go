@@ -10,6 +10,7 @@ import (
 
 const IncomingEveryInstance = "global"
 const IncomingOnlyOnce = "balanced"
+const IncomingWebsocket = "incoming.ws"
 const pingTime = time.Second * 2
 
 var Instance *model.Server

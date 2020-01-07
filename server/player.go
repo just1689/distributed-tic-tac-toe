@@ -5,7 +5,7 @@ import (
 	"github.com/just1689/distributed-tic-tac-toe/model"
 )
 
-func HandleNewPlayer(message *model.Message) {
+func HandleNewPlayer(message model.Message) {
 	p := &model.Player{
 		ID:               uuid.New().String(),
 		WebsocketChannel: message.Msg,

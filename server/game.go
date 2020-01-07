@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewGame(message *model.Message) {
+func NewGame(message model.Message) {
 	game := model.NewGame()
 
 	if found, p := Instance.GetPlayerByID(message.Msg); found {

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"github.com/just1689/distributed-tic-tac-toe/config"
 	"github.com/just1689/distributed-tic-tac-toe/model"
 	"github.com/just1689/distributed-tic-tac-toe/server"
 	"github.com/just1689/swoq/queue"
+	"github.com/just1689/swoq/ws"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -36,7 +38,7 @@ func RunGateway() {
 	flag.Parse()
 	n := config.GetVar(NATsVar, *natsURL)
 	queue.BuildDefaultConnFromUrl(n)
-	server.StartWS(config.GetVar("listen", *listen), server.IncomingOnlyOnce)
+	server.StartWS(config.GetVar("listen", *listen), server.IncomingWebsocket)
 
 }
 
@@ -47,9 +49,11 @@ func RunBackend() {
 	if *workers <= 0 {
 		logrus.Fatalln("Expected workers to be greater than 0, not ", *workers)
 	}
-	incomingWork := make(chan []byte, 1024)
+	incomingBin := make(chan []byte, 1024)
+	incomingItem := make(chan model.Message, 1024)
 	for i := 0; i < *workers; i++ {
-		go server.StartWorker(incomingWork)
+		go server.StartConverter(incomingBin, incomingItem)
+		go server.StartWorker(incomingItem)
 		logrus.Println(" ...started worker ", i)
 	}
 	natsConnURL := config.GetVar(NATsVar, *natsURL)
@@ -57,15 +61,34 @@ func RunBackend() {
 	queue.BuildDefaultConnFromUrl(natsConnURL)
 
 	logrus.Println("Starting subscriptions...")
-	queueHandler := buildNATSHandler(incomingWork)
+	queueHandler := buildNATSHandler(incomingBin)
 	logrus.Println(" ...subscribing to", server.IncomingEveryInstance)
 	queue.Subscribe(server.IncomingEveryInstance, queueHandler)
 	logrus.Println(" ...subscribing to", server.IncomingOnlyOnce)
-	if _, err := queue.DefaultConn.QueueSubscribe(server.IncomingOnlyOnce, "queue", queueHandler); err != nil {
+	unSubQueueWS, err := queue.DefaultConn.QueueSubscribe(server.IncomingWebsocket, "queue", func(msg *nats.Msg) {
+		item := &ws.WrappedMessage{}
+		if err := json.Unmarshal(msg.Data, item); err != nil {
+			logrus.Errorln("could not convert websocket message to WrappedMessage")
+			logrus.Errorln(string(msg.Data))
+			logrus.Errorln(err)
+			return
+		}
+		result := model.Message{
+			Title:  "incoming-ws",
+			SrcKey: "client",
+			SrcID:  item.ClientID,
+			Msg:    "",
+			Body:   item.Body,
+		}
+		incomingItem <- result
+	})
+	server.Instance.QueueHub.Add(server.IncomingWebsocket, unSubQueueWS)
+	if err != nil {
 		logrus.Fatalln(err)
 	}
 
-	queue.Subscribe(server.Instance.GetQueueName(), queueHandler)
+	unSubQueueBackendQueue := queue.Subscribe(server.Instance.GetQueueName(), queueHandler)
+	server.Instance.QueueHub.Add(server.Instance.GetQueueName(), unSubQueueBackendQueue)
 
 	//FOR DISTRIBUTED TEST
 	if *t != 0 {
@@ -95,7 +118,7 @@ func setupTestEnv() {
 			return
 		}
 		time.Sleep(3 * time.Second)
-		server.NewGame(&model.Message{
+		server.NewGame(model.Message{
 			Title: model.MessageIsNewGame,
 			Msg:   "1000",
 			Body:  nil,

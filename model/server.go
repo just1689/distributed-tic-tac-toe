@@ -18,6 +18,7 @@ func NewServer(everyInstance, onlyOnce string, runnables []func(*Server)) (s *Se
 		Players:               []*Player{},
 		OtherInstances:        map[string]time.Time{},
 		Games:                 []*Game{},
+		QueueHub:              NewQueueHub(),
 		chanAddPlayer:         make(chan *Player),
 		chanRemovePlayer:      make(chan *Player),
 		chanAddGame:           make(chan *Game),
@@ -42,6 +43,7 @@ type Server struct {
 	Players               []*Player            `json:"players"`
 	OtherInstances        map[string]time.Time `json:"otherInstances"`
 	Games                 []*Game              `json:"games"`
+	QueueHub              *QueueHub            `json:"-"`
 	//Changes
 	chanAddPlayer    chan *Player
 	chanRemovePlayer chan *Player
