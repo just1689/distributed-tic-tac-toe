@@ -26,7 +26,7 @@ func (q *QueueHub) Get(name string) (found bool, sub *nats.Subscription) {
 
 func (q *QueueHub) UnSubscribeAll() {
 	for name, sub := range q.list {
-		logrus.Infoln("Unsubscribing from NATS queue: ", name)
+		logrus.Infoln("Unsubscribing from NATS queue:", name)
 		err := sub.Unsubscribe()
 		if err != nil {
 			logrus.Infoln("> FAIL")
