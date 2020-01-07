@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/nats-io/nats.go"
-	"github.com/sirupsen/logrus"
 )
 
 func NewQueueHub() *QueueHub {
@@ -24,15 +23,8 @@ func (q *QueueHub) Get(name string) (found bool, sub *nats.Subscription) {
 	return
 }
 
-func (q *QueueHub) UnSubscribeAll() {
-	for name, sub := range q.list {
-		logrus.Infoln("Unsubscribing from NATS queue:", name)
-		err := sub.Unsubscribe()
-		if err != nil {
-			logrus.Infoln("> FAIL")
-			logrus.Errorln(err)
-			continue
-		}
-		logrus.Infoln("> OK ")
+func (q *QueueHub) ForEach(f func(name string, subscription *nats.Subscription)) {
+	for name, subscription := range q.list {
+		f(name, subscription)
 	}
 }

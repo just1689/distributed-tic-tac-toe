@@ -171,7 +171,7 @@ func runSignalHandler() {
 
 		<-sigint
 		logrus.Println("Terminate signal received, beginning shutdown")
-		go server.Instance.QueueHub.UnSubscribeAll()
+		go server.UnSubscribeFromQueues(server.Instance.QueueHub)
 		s := strconv.Itoa(*shutdownSeconds) + "s"
 		d, err := time.ParseDuration(s)
 		if err != nil {
