@@ -24,7 +24,7 @@ var workers = flag.Int("workers", 12, "workers is the number of go routines for 
 var natsURL = flag.String(NATsVar, "nats://127.0.0.1:4222", "The NATS url for a NATS server instance.")
 var t = flag.Int("t", 0, "which test to run ")
 var listen = flag.String("listen", ":8080", "listen address")
-var shutdownSeconds = flag.Int("shutdownSeconds", 5, "how many seconds the app has to shutdown")
+var shutdownSeconds = flag.Int("shutdownSeconds", 4, "how many seconds the app has to shutdown")
 
 func main() {
 	flag.Parse()
@@ -161,9 +161,16 @@ func setupTestEnv() {
 }
 
 func runSignalHandler() {
-	go func() {
-		sigint := make(chan os.Signal, 1)
+	s := strconv.Itoa(*shutdownSeconds) + "s"
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		logrus.Errorln("could not understand shutdownSeconds: ", *shutdownSeconds, " as an int")
+		logrus.Fatalln(err)
+	}
 
+	go func(d time.Duration) {
+		// channel for incoming signals
+		sigint := make(chan os.Signal, 1)
 		// interrupt signal sent from terminal
 		signal.Notify(sigint, os.Interrupt)
 		// sigterm signal sent from kubernetes
@@ -172,14 +179,9 @@ func runSignalHandler() {
 		<-sigint
 		logrus.Println("Terminate signal received, beginning shutdown")
 		go server.UnSubscribeFromQueues(server.Instance.QueueHub)
-		s := strconv.Itoa(*shutdownSeconds) + "s"
-		d, err := time.ParseDuration(s)
-		if err != nil {
-			logrus.Fatalln(err)
-		}
 		logrus.Println("Stopping in", d)
 		time.Sleep(d)
 		os.Exit(0)
 
-	}()
+	}(d)
 }
