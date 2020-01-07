@@ -17,7 +17,7 @@ spec:
             - name: app
               value: "backend"
             - name: nats
-              value: "nats://192.168.88.26:4222"
+              value: "nats://nats:4222"
           resources:
             limits:
               memory: 64Mi
