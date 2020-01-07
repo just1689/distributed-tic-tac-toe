@@ -20,5 +20,5 @@ git add --force VERSION
 
 # Commit and push the version change. This will preserve the state.
 git commit -am "Bumped version of docker image to $HASH"
-git push
+#git push
 
