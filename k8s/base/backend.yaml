@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: backend
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -23,3 +23,73 @@ spec:
               memory: 64Mi
             requests:
               memory: 64Mi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        name: gateway
+        app: gateway
+    spec:
+      containers:
+        - name: dttt-backend
+          image: dttt/backend
+          env:
+            - name: app
+              value: "gateway"
+            - name: nats
+              value: "nats://nats:4222"
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats
+spec:
+  ports:
+    - name: c-nats-port
+      port: 4222
+      targetPort: 4222
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    app: nats
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nats
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: nats
+        app: nats
+    spec:
+      containers:
+        - name: dttt-nats
+          image: nats:latest
+          env:
+            - name: app
+              value: "gateway"
+            - name: nats
+              value: "nats://nats:4222"
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              memory: 64Mi
+          ports:
+            - name: c-nats-port
+              containerPort: 4222
+              protocol: TCP
