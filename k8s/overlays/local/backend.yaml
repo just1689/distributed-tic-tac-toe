@@ -4,3 +4,11 @@ metadata:
   name: backend
 spec:
   replicas: 3
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 3
+
