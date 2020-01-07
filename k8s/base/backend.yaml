@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: docs
+spec:
+  ports:
+    - name: pc-backend
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    app: docs
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: backend
+        app: backend
+    spec:
+      containers:
+        - name: dttt-backend
+          image: dttt/backend
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              memory: 64Mi
+          ports:
+            - name: pc-backend
+              containerPort: 8080
+              protocol: TCP
