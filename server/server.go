@@ -46,15 +46,6 @@ func handleMessage(item *model.Message) {
 	}
 }
 
-func HandleMessage(item *model.Message) {
-	if f, found := messageHandlers[item.Title]; !found {
-		fmt.Println("not sure how to handle", item.Title, item.Msg, string(item.Body))
-		return
-	} else {
-		f(item)
-	}
-}
-
 func AddInstance(item *model.Message) {
 	Instance.AddInstances(item.Msg)
 }
@@ -62,8 +53,7 @@ func AddInstance(item *model.Message) {
 func HandleGetPlayerRemotely(item *model.Message) {
 	found, p := Instance.GetPlayerByID(item.Msg)
 	if found {
-		item := *p
-		b, err := json.Marshal(item)
+		b, err := json.Marshal(*p)
 		if err != nil {
 			logrus.Errorln(err)
 			return
@@ -77,7 +67,7 @@ func HandleGetPlayerRemotely(item *model.Message) {
 			logrus.Errorln(err)
 			return
 		}
-		queue.GetPublisher(Instance.IncomingEveryInstance)(b)
+		queue.GetPublisher(item.GetReplyChannel())(b)
 	}
 }
 

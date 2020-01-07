@@ -33,6 +33,8 @@ func NewServer(everyInstance, onlyOnce string, runnables []func(*Server)) (s *Se
 	return
 }
 
+const SrcBackend = "backend"
+
 type Server struct {
 	ID                    string               `json:"id"`
 	IncomingEveryInstance string               `json:"-"`
@@ -46,6 +48,10 @@ type Server struct {
 	chanAddGame      chan *Game
 	chanPublishAudit chan string
 	chanAddInstances chan string
+}
+
+func (s *Server) GetQueueName() string {
+	return SrcBackend + "." + s.ID
 }
 
 func (s *Server) HasPlayer(playerID string) bool {
@@ -96,19 +102,20 @@ func (s *Server) handleChanges() {
 			s.Games = append(s.Games, g)
 		case channelID := <-s.chanPublishAudit:
 			logrus.Infoln("> publish audit")
-			item := *s
-			b, err := json.Marshal(item)
-			if err != nil {
+			var b []byte
+			var err error
+			if b, err = json.Marshal(*s); err != nil {
 				logrus.Errorln(err)
 				continue
 			}
 			m := Message{
-				Title: MessageIsAuditResult,
-				Msg:   "",
-				Body:  b,
+				Title:  MessageIsAuditResult,
+				SrcKey: SrcBackend,
+				SrcID:  s.ID,
+				Msg:    "",
+				Body:   b,
 			}
-			b, err = json.Marshal(m)
-			if err != nil {
+			if b, err = json.Marshal(m); err != nil {
 				logrus.Errorln(err)
 				continue
 			}

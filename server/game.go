@@ -18,7 +18,7 @@ func NewGame(message *model.Message) {
 			ID:   message.Msg,
 			Name: "...",
 		})
-		fetchPlayerRemotely(message.Msg)
+		fetchPlayerRemotely(message.Msg, Instance.ID)
 	}
 	game.SubscriptionCloser = queue.Subscribe(game.GetChannel(), func(m *nats.Msg) {
 		item := &model.Message{}
@@ -31,10 +31,13 @@ func NewGame(message *model.Message) {
 	Instance.AddGame(game)
 }
 
-func fetchPlayerRemotely(id string) {
+func fetchPlayerRemotely(playerID, backendID string) {
 	m := model.Message{
-		Title: model.MessageIsGetPlayer,
-		Msg:   id,
+		Title:  model.MessageIsGetPlayer,
+		SrcKey: "backend",
+		SrcID:  backendID,
+		Msg:    playerID,
+		Body:   nil,
 	}
 	b, err := json.Marshal(m)
 	if err != nil {
