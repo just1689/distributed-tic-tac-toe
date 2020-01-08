@@ -33,15 +33,9 @@ for D in *; do
     # Kustomize using the overlay
     kustomize build ${D} >../build/tmp/out.yaml
 
-
     # Edit the image per overlay from the tmp directory
-    # TODO: put this back in when we have 1 registry
-#     (cd ../build/tmp && kustomize edit set image $GROUP_NAME/$APP_NAME=$FULL_URL)
-    ########## TODO: delete 3 lines when we have 1 registry ###########
-    getRegistryByCluster $D
     FULL_URL=${REGISTRY}${GROUP_NAME}/${APP_NAME}:${HASH}
     (cd ../build/tmp && kustomize edit set image $GROUP_NAME/$APP_NAME=$FULL_URL)
-    ###################################################################
 
     # Build the resulting artefact to the build directory
     kustomize build ../build/tmp >../build/${D}-${APP_NAME}.yaml
