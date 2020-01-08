@@ -7,7 +7,6 @@ APP_NAME=$(cat k8s/config/APP_NAME)
 LOCAL_URL=${GROUP_NAME}/${APP_NAME}:${HASH}
 source ./k8s/config/valid.sh
 tagAndPush() {
-  getRegistryByCluster $1
   FULL_URL=${REGISTRY}${GROUP_NAME}/${APP_NAME}:${HASH}
   docker tag $LOCAL_URL $FULL_URL
   docker push ${FULL_URL}
