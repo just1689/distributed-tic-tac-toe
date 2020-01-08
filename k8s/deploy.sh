@@ -6,5 +6,6 @@
 #sudo su - ${CLUSTER} bash -c "${RUN_AS}"
 
 APP_NAME=$(cat config/APP_NAME)
+git commit -am 'Bumped version'
 cat build/${CLUSTER}-${APP_NAME}.yaml
 kubectl apply -f build/${CLUSTER}-${APP_NAME}.yaml
