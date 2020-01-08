@@ -35,7 +35,7 @@ for D in *; do
 
     # Edit the image per overlay from the tmp directory
     FULL_URL=${REGISTRY}${GROUP_NAME}/${APP_NAME}:${HASH}
-    (cd ../build/tmp && kustomize edit set image $GROUP_NAME/$APP_NAME=$FULL_URL)
+    (cd ../build/tmp && kustomize edit set image $GROUP_NAME\$APP_NAME=$FULL_URL)
 
     # Build the resulting artefact to the build directory
     kustomize build ../build/tmp >../build/${D}-${APP_NAME}.yaml
