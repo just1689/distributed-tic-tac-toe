@@ -18,5 +18,5 @@ errorOnNewLine() {
 
 # Provide the relavant registry by the provided cluster
 getRegistryByCluster() {
-  REGISTRY="registry.captainjustin.space/"
+  REGISTRY="registry.captainjustin.space"
 }
